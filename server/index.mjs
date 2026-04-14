@@ -65,6 +65,13 @@ function evaluateGuess(cards, offeredCard, position) {
   return offeredCard.badLuckIndex > lower && offeredCard.badLuckIndex < upper;
 }
 
+function ensureActiveOffer(gameId, req) {
+  if (req.session.currentOffer) return;
+  const game = db.prepare("SELECT round_number AS roundNumber, status FROM games WHERE id = ?").get(gameId);
+  if (!game || game.status !== 'ongoing') return;
+  req.session.currentOffer = createOffer(gameId, game.roundNumber);
+}
+
 app.post('/api/sessions', (req, res, next) => {
   passport.authenticate('local', (err, user, info) => {
     if (err) return next(err);
@@ -87,6 +94,7 @@ app.post('/api/game/start', isLoggedIn, (req, res) => {
   const existing = db.prepare("SELECT id FROM games WHERE user_id = ? AND status = 'ongoing'").get(req.user.id);
   if (existing) {
     req.session.currentGameId = existing.id;
+    ensureActiveOffer(existing.id, req);
     return res.json(buildGameState(existing.id, req));
   }
 
@@ -108,6 +116,7 @@ app.post('/api/game/start', isLoggedIn, (req, res) => {
 app.get('/api/game/current', isLoggedIn, (req, res) => {
   const gameId = req.session.currentGameId;
   if (!gameId) return res.status(404).json({ error: 'No ongoing game' });
+  ensureActiveOffer(gameId, req);
   return res.json(buildGameState(gameId, req));
 });
 
