@@ -18,7 +18,8 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
 app.use(session({ secret: 'stuff-happens-secret', resave: false, saveUninitialized: false }));
-app.use(passport.authenticate('session'));
+app.use(passport.initialize());
+app.use(passport.session());
 
 passport.use(new LocalStrategy((username, password, done) => {
   const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
