@@ -153,6 +153,11 @@ function Game({ user }) {
               {feedback.offeredCard && <p>Won card index: {feedback.offeredCard.badLuckIndex}</p>}
               <button onClick={nextRound}>Start next round</button>
             </div>
+          ) : !state.offer ? (
+            <div className="panel">
+              <p>This round is waiting to be started.</p>
+              <button onClick={nextRound}>Start next round</button>
+            </div>
           ) : (
             <PlayArea state={state} onGuess={onGuess} />
           )}
